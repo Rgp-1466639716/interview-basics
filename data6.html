@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 深浅拷贝
+      //深拷贝递归
+      function deepClone(obj) {
+        // 处理基本数据类型和 null
+        if (typeof obj !== "object" || obj === null) {
+          return obj;
+        }
+
+        let clone;
+
+        // 处理 Date 对象
+        if (obj instanceof Date) {
+          clone = new Date(obj.getTime());
+          return clone;
+        }
+
+        // 处理正则表达式对象
+        if (obj instanceof RegExp) {
+          clone = new RegExp(obj);
+          return clone;
+        }
+
+        // 处理函数
+        if (typeof obj === "function") {
+          // 这里简单返回原函数，实际复制函数较复杂
+          return obj;
+        }
+
+        // 处理数组
+        if (Array.isArray(obj)) {
+          clone = [];
+          for (let i = 0; i < obj.length; i++) {
+            clone[i] = deepClone(obj[i]);
+          }
+          return clone;
+        }
+
+        // 处理普通对象
+        clone = {};
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            clone[key] = deepClone(obj[key]);
+          }
+        }
+        return clone;
+      }
+
+      // 测试示例
+      const data = {
+        num: 123,
+        str: "hello",
+        bool: true,
+        arr: [1, 2, [3, 4]],
+        obj: { a: 1, b: { c: 2 } },
+        date: new Date(),
+        reg: /abc/g,
+        func: function () {
+          console.log("This is a function");
+        },
+      };
+
+      const clonedData = deepClone(data);
+
+      // 修改克隆对象的属性，验证是否影响原对象
+      clonedData.arr[2][0] = 5;
+      clonedData.obj.b.c = 3;
+      clonedData.date.setFullYear(2024);
+
+      console.log(data.arr[2][0]); // 输出: 3
+      console.log(data.obj.b.c); // 输出: 2
+      console.log(data.date.getFullYear()); // 输出原日期的年份
+    </script>
+  </body>
+</html>

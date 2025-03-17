@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      const fruits = ["apple", "banana", "apple", "cherry", "banana", "apple"];
+      const fruitCount = fruits.reduce((accumulator, currentValue) => {
+        accumulator[currentValue] = (accumulator[currentValue] || 0) + 1;
+        return accumulator;
+      }, {});
+      let maxfruit = "";
+      let maxcount = 0;
+      for (const key in fruitCount) {
+        if (fruitCount[key] > maxcount) {
+          maxcount = fruitCount[key];
+          maxfruit = key;
+        }
+      }
+      console.log(fruitCount, maxfruit);
+    </script>
+  </body>
+</html>

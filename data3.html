@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //按条件分组 {20:[{ name: "alice", age: 20 }]}
+      const people = [
+        { name: "alice", age: 20 },
+        { name: "rgp", age: 20 },
+        { name: "bob", age: 21 },
+        { name: "peter", age: 30 },
+      ];
+      const groupAge = people.reduce((acc, item) => {
+        const key = item.age;
+        acc[key] ||= [];
+        acc[key].push(item);
+        return acc;
+      }, {});
+      console.log(groupAge);
+    </script>
+  </body>
+</html>

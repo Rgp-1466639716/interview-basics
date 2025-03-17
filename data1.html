@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //数组去重
+      //1.用set结构特性,数组值唯一
+      const array1 = [1, 1, 1, 2, 3, 4, 5, 5, 5, 3];
+      const arr1 = [...new Set([...array1])];
+      //2.循环fliter和indexof 返回第一次出现的索引
+      const arr2 = array1.filter((item, index) => {
+        return array1.indexOf(item) === index;
+      });
+      //3.利用reduce和includes
+      const arr3 = array1.reduce((acc, item) => {
+        if (!acc.includes(item)) {
+          acc.push(item);
+        }
+        return acc;
+      }, []);
+    </script>
+  </body>
+</html>

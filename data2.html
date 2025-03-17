@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //数组排序 sort 里传入比较函数
+      const array1 = [3, 4, 1, 6, 0, 1];
+      const arr1 = array1.sort((a, b) => a - b);
+      //按属性排讯
+      const array2 = [
+        { math: 2, age: 5 },
+        { math: 1, age: 7 },
+        { math: 3, age: 3 },
+      ];
+      const arr2 = array2.sort((a, b) => b.age - a.age);
+    </script>
+  </body>
+</html>
