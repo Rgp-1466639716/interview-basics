@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>大文件上传</title>
+  </head>
+
+  <body>
+    <input type="file" id="fileInput" />
+    <button id="uploadButton">上传</button>
+    <button id="continueButton" disabled>继续上传</button>
+    <script>
+      const fileInput = document.getElementById("fileInput");
+      const uploadButton = document.getElementById("uploadButton");
+      const continueButton = document.getElementById("continueButton");
+      const chunkSize = 1024 * 1024; // 每个文件块的大小为 1MB
+      let totalChunks = 0; //总分多少块
+      let chunkdata = []; //分完块的数据
+      let fileHash = ""; // 计算文件的哈希值
+      // 记录已上传的文件块
+      let uploadedChunks = [];
+      let file = {};
+      fileInput.addEventListener("change", async function () {
+        file = this.files[0];
+        if (file) {
+          totalChunks = Math.ceil(file.size / chunkSize);
+          chunkdata = createChunk(file, chunkSize); //分完块的数据
+          fileHash = await calculateHash(chunkdata); // 计算文件的哈希值
+        }
+      });
+      uploadButton.addEventListener("click", async () => {
+        if (!file) return;
+        // 上传每个文件块
+        chunkdata.forEach(async (chunk, i) => {
+          const formData = new FormData();
+          formData.append("file", chunk);
+          formData.append("filename", file.name);
+          formData.append("chunkIndex", i);
+          formData.append("totalChunks", totalChunks);
+          formData.append("fileHash", fileHash);
+
+          try {
+            const response = await fetch("/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              uploadedChunks.push(i);
+              console.log(`第 ${i + 1} 个文件块上传成功`);
+            } else {
+              console.log(`第 ${i + 1} 个文件块上传失败`);
+            }
+          } catch (error) {
+            console.error(`上传出错: ${error.message}`);
+          }
+        });
+        // 通知服务器合并文件
+        if (uploadedChunks.length === totalChunks) {
+          const response = await fetch("/merge", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              filename: file.name,
+              totalChunks,
+              fileHash,
+            }),
+          });
+
+          if (response.ok) {
+            console.log("文件合并成功");
+          } else {
+            console.log("文件合并失败");
+          }
+        }
+      });
+      continueButton.addEventListener("click", async function () {
+        if (!file) return;
+        // 上传每个文件块
+        chunkdata.forEach(async (chunk, i) => {
+          if (uploadedChunks.includes(i)) return;
+          const formData = new FormData();
+          formData.append("file", chunk);
+          formData.append("filename", file.name);
+          formData.append("chunkIndex", i);
+          formData.append("totalChunks", totalChunks);
+          try {
+            const response = await fetch("/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              uploadedChunks.push(i);
+              console.log(`第 ${i + 1} 个文件块上传成功`);
+            } else {
+              console.log(`第 ${i + 1} 个文件块上传失败`);
+            }
+          } catch (error) {
+            console.error(`上传出错: ${error.message}`);
+          }
+        });
+
+        if (uploadedChunks.length === totalChunks) {
+          continueButton.disabled = true;
+          console.log("文件上传完成");
+        }
+      });
+      // 分片上传
+      function createChunk(file, chunkSize) {
+        const result = [];
+        for (let i = 0; i < file.size; i += chunkSize) {
+          result.push(file.slice(i, i + chunkSize));
+        }
+        return result;
+      }
+      // 增量计算hash 用spark-md5
+      function calculateHash(chunks) {
+        return new Promise((resolve, reject) => {
+          const spark = new SparkMD5();
+          function _read(i) {
+            if (i > chunks.length) {
+              resolve(spark.end());
+              return;
+            }
+            const blob = chunks[i];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const bytes = e.target.result;
+              spark.append(bytes);
+              _read(i + 1);
+            };
+            reader.readAsArrayBuffer(blob);
+            reader.onerror = () => {
+              reject(new Error("文件读取失败"));
+            };
+          }
+          _read(0);
+        });
+      }
+    </script>
+  </body>
+</html>
